@@ -39,6 +39,7 @@ module ActionController
         end
 
         helper_method :is_mobile_device?
+        helper_method :is_webkit_device?
         helper_method :in_mobile_view?
         helper_method :is_device?
       end
