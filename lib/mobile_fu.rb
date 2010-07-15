@@ -8,6 +8,8 @@ module ActionController
                           'pdxgw|netfront|xiino|vodafone|portalmmm|sagem|mot-|sie-|ipod|up\\.b|' +
                           'webos|amoi|novarra|cdm|alcatel|pocket|ipad|iphone|mobileexplorer|' +
                           'mobile'
+                          
+    WEBKIT_USER_AGENTS = 'ipad|iphone|ipod|webos|android'
     
     def self.included(base)
       base.extend(ClassMethods)
@@ -59,7 +61,7 @@ module ActionController
       # Forces the request format to be :mobile
       
       def force_mobile_format
-        request.format = :mobile
+        request.format = is_webkit_device? ? :mobile : :mobile_lite
         session[:mobile_view] = true if session[:mobile_view].nil?
       end
       
@@ -67,8 +69,11 @@ module ActionController
       # the user has opted to use either the 'Standard' view or 'Mobile' view.
       
       def set_mobile_format
-        if is_mobile_device? && !request.xhr?
+        if is_webkit_device? && !request.xhr?
           request.format = session[:mobile_view] == false ? :html : :mobile
+          session[:mobile_view] = true if session[:mobile_view].nil?
+        elsif is_mobile_device? && !request.xhr?
+          request.format = session[:mobile_view] == false ? :html : :mobile_lite
           session[:mobile_view] = true if session[:mobile_view].nil?
         end
       end
@@ -85,6 +90,10 @@ module ActionController
       
       def is_mobile_device?
         request.user_agent.to_s.downcase =~ Regexp.new(ActionController::MobileFu::MOBILE_USER_AGENTS)
+      end
+      
+      def is_webkit_device?
+        request.user_agent.to_s.downcase =~ Regexp.new(ActionController::MobileFu::WEBKIT_USER_AGENTS)
       end
 
       # Can check for a specific user agent
