@@ -46,6 +46,10 @@ module ActionController
       def is_mobile_device?
         @@is_mobile_device
       end
+      
+      def is_webkit_device?
+        @@is_webkit_device
+      end
 
       def in_mobile_view?
         @@in_mobile_view
@@ -82,7 +86,7 @@ module ActionController
       # request is either :mobile or not.
       
       def in_mobile_view?
-        request.format.to_sym == :mobile
+        request.format.to_sym == :mobile || request.format.to_sym == :mobile_lite
       end
       
       # Returns either true or false depending on whether or not the user agent of
