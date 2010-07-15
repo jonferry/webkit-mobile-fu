@@ -9,6 +9,8 @@ module ActionController
                           'webos|amoi|novarra|cdm|alcatel|pocket|ipad|iphone|mobileexplorer|' +
                           'mobile'
     
+    WEBKIT_USER_AGENTS = 'ipad|iphone|ipod|webos|android'
+    
     def self.included(base)
       base.extend(ClassMethods)
     end
@@ -44,6 +46,10 @@ module ActionController
       def is_mobile_device?
         @@is_mobile_device
       end
+      
+      def is_webkit_device?
+        @@is_mobile_device
+      end
 
       def in_mobile_view?
         @@in_mobile_view
@@ -59,7 +65,7 @@ module ActionController
       # Forces the request format to be :mobile
       
       def force_mobile_format
-        request.format = :mobile
+        request.format = is_webkit_device? ? :mobile : :mobile_lite
         session[:mobile_view] = true if session[:mobile_view].nil?
       end
       
@@ -67,7 +73,10 @@ module ActionController
       # the user has opted to use either the 'Standard' view or 'Mobile' view.
       
       def set_mobile_format
-        if is_mobile_device? && !request.xhr?
+        if is_webkit_device? && !request.xhr?
+          request.format = session[:mobile_view] == false ? :html : :mobile
+          session[:mobile_view] = true if session[:mobile_view].nil?
+        elsif is_mobile_device? && !request.xhr?
           request.format = session[:mobile_view] == false ? :html : :mobile
           session[:mobile_view] = true if session[:mobile_view].nil?
         end
@@ -77,7 +86,7 @@ module ActionController
       # request is either :mobile or not.
       
       def in_mobile_view?
-        request.format.to_sym == :mobile
+        request.format.to_sym == :mobile || request.format.to_sym == :mobile_lite
       end
       
       # Returns either true or false depending on whether or not the user agent of
@@ -85,6 +94,10 @@ module ActionController
       
       def is_mobile_device?
         request.user_agent.to_s.downcase =~ Regexp.new(ActionController::MobileFu::MOBILE_USER_AGENTS)
+      end
+      
+      def is_webkit_device?
+        request.user_agent.to_s.downcase =~ Regexp.new(ActionController::MobileFu::WEBKIT_USER_AGENTS)
       end
 
       # Can check for a specific user agent
